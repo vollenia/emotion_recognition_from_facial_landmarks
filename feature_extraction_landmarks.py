@@ -1,9 +1,8 @@
-#general
+# Importing modules
 import os
 import argparse
 import time
 import pandas as pd
-#processing
 import numpy as np
 import cv2
 import dlib
@@ -11,7 +10,7 @@ import imutils
 from imutils import face_utils
 from imutils.video import FileVideoStream
 
-# argparse constructor
+# Argparse constructor
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--data", required=True,
 	help = "path to the data file directory")
@@ -23,19 +22,19 @@ parser.add_argument("-p", "--predictor", required=True,
 	help = "path to the landmark predictor")
 args = vars(parser.parse_args())
 
-#defining detector & pedictor
+# Defining face detector & landmarks pedictor
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor(args["predictor"])
 
-#creating a list with paths from directory
+# Creating a list with paths from directory
 list_of_files = sorted([os.path.join(args["data"], i) for i in os.listdir(args["data"])])
 
-#extracting the features & reducing the frames
-#target frames
+# Extracting the features & reducing the frames
+# Target frames
 def frame_selection(frames, nr):
 	vip_frames = np.array([frame for frame in frames[:len(frames)//nr*nr:len(frames)//nr]])
 	
-	return vip_frames #returns a 3D array
+	return vip_frames # returns a 3D array
 
 data = {}       
 def process_video(files):
@@ -46,15 +45,15 @@ def process_video(files):
 		while cap.more():
 			try:
 				frame = cap.read()
-				#reduces the res of the file for faster processing 
+				# Reduces the res of the file for faster processing 
 				frame = imutils.resize(frame, width=400)
 				frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 				rects = detector(frame, 0)
-				if len(rects) > 0:  # at least one face detected
+				if len(rects) > 0:  # if at least one face detected
 					face = rects[0]
 					shape = predictor(frame, face)
 					shape = face_utils.shape_to_np(shape)
-					#checking if landmark coordinates contain negative values
+					# Checking if landmark coordinates contain negative values
 					neg = np.where(shape < 0)
 					if len(neg[0]) == 0:
 						frames.append(shape)
@@ -63,7 +62,7 @@ def process_video(files):
 			except AttributeError:
 				pass
 		cap.stop()
-		if len(frames) >= args["frames"]: #checks if enough frames were extracted
+		if len(frames) >= args["frames"]: #checks if enough frames were accumulated
 			data[file_path.split('/')[-1].replace('.avi', '')] = frame_selection(frames, args["frames"])# nr of target framems
 		else:
 			data["Y"+file_path.split('/')[-1].replace('.avi', '')] = None
@@ -72,7 +71,7 @@ def process_video(files):
 	print(f'video processing took {duration} seconds')
 process_video(list_of_files)
 
-#extracting the labels
+# Extracting labels
 ref = ["anger", "happiness", "neutral", "sadness"]
 labels = {}
 def get_labels(file):
@@ -98,7 +97,7 @@ def get_labels(file):
 
 get_labels(args["labels"])
 
-#creating a dictionary
+# Creating dataset as dictionary
 dataset_d = {}
 def create_dataset(labels, data):
 	start_time = time.time()
@@ -121,8 +120,8 @@ create_dataset(labels, data)
 
 print(len(dataset_d))
 
-#creating a pandas dataframe
+# Creating pandas dataframe from dictionary
 dataset_df = pd.DataFrame.from_dict(dataset_d, orient='index')
 
-#storing the dataframe as file
-dataset_df.to_pickle("/mount/arbeitsdaten/thesis-dp-1/vollenia/dataframes/"+"df_hog_landmarks"+str(args["frames"])+".pkl")
+# Storing the dataframe
+dataset_df.to_pickle("PATH"+"df_hog_landmarks"+str(args["frames"])+".pkl")
