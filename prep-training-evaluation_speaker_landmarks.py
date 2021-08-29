@@ -21,10 +21,10 @@ parser.add_argument("-l", "--label", required=True,
 	help = "type of label to be used (LABEL or ACTIVATION or VALENCE")
 args = vars(parser.parse_args())
 
-# Loading the pandas dataset
+# Loading pandas dataset
 df = pd.read_pickle(args["data"])
 
-# Converting continuous labels (activation/valence) into classes
+# Converts continuous labels (activation/valence) into discrete classes
 def map_to_bin(cont_label):
 	if cont_label <= 2.5:
 		return 0.0
@@ -41,11 +41,11 @@ for i in enumerate(df.index):
 df["LABEL"].replace({'anger': 0, 'happiness': 1, 'neutral': 2, 'sadness': 3}, inplace=True)
 
 # Extra steps for landmarks (+integration into dataframe)
-# Computing the disatnace
+# Computes distance
 def distance(a, b):
 	return np.linalg.norm(a-b)
 
-# Calculate features from facial landmarks
+# Calculates features from facial landmarks
 def normalize_landmarks(filename):
 	start_time = time.time()
 	feats = []
@@ -82,7 +82,7 @@ def normalize_landmarks(filename):
 	
 df["FEATURES"] = normalize_landmarks(df["FEATURES"]) #direct integration
 
-# Splitting data according to the 6 original sessions (given the speaker id)
+# Splits data according to the 6 original sessions (given the speaker id)
 def create_sessions(df):
 	# Features
 	f_1 = []
@@ -149,7 +149,7 @@ def standardize(features, mean, std):
 	
 	return tens(features)
 
-# Splitting validation set into dev and test (least populated class needs to have AT LEAST 2 MEMBERS)
+# Splits validation set into dev and test (least populated class needs to have AT LEAST 2 MEMBERS)
 def SSS(X_val, y_val):
 	sss = StratifiedShuffleSplit(n_splits=1, test_size=0.5)
 	sss.get_n_splits(X_val, y_val)
@@ -180,10 +180,10 @@ class FF(nn.Module):
 		x = self.drop1(x)
 		x = F.relu(self.fc2(x))
 		x = self.drop2(x)
-		x = self.fc3(x)
+		x = self.fc3(x) # output layer therefore no activation
 		return x
 
-# Batch and epochs
+# Batch size and nr of epochs
 BATCH_SIZE = 128
 EPOCHS = 30
 
