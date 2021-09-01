@@ -16,10 +16,9 @@ Neutral | 3,455 | 44.60%
 Sad | 885 | 11.42%
 
 ## Feature Extraction
-* Normalized distances computed from facial landmark coordinates as features
 * Using the OpenCV library to read out the individual video frames
 * Converting to greyscale and downscaling the image as far as possible to still be able to run face detections (goal: reducing processing time)
-* Applying HOG frontal face detector from the Dlib toolkit
+* Applying HOG frontal face detector from the Dlib toolkit (resulting rectangle: 100x100px)
 * Applying Dlib toolkits's shape predictor which extracts 68 points of interest from the face as 2-dimensional coordinates
 * Accumulating a targeted number of frames over a recording with an
 adaptive sampling interval
