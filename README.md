@@ -30,7 +30,7 @@ not be accumulated
 ## Preprocessing/Training/Evaluation
 * Performing distance-based normalization for each set of 68 landmark coordinates by identifying static and variable points and computing the distance between them (resulting features: _eyebrow<sub>left</sub>, eyebrow<sub>right</sub>, lip<sub>left</sub>, lip<sub>right</sub>, mouth<sub>width</sub>, mouth<sub>height</sub>_)
 * Normalizing via Z-Score (mean=0; std=1)
-* Using a CNN architecture wahere the selected frames from one recording are passed in as channels
+* Using a FCNN architecture
 * Performing training/evaluation in a 6-fold cross validation approach
 
 ## Model Architecture
