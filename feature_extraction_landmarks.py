@@ -22,23 +22,16 @@ parser.add_argument("-p", "--predictor", required=True,
 	help = "path to the landmark predictor")
 args = vars(parser.parse_args())
 
-# Defining face detector & landmarks pedictor
-detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor(args["predictor"])
-
-# Creating a list with paths from directory
-list_of_files = sorted([os.path.join(args["data"], i) for i in os.listdir(args["data"])])
-
-# Extracting the features & reducing the frames
+# Extracting features
 # Target frames
 def frame_selection(frames, nr):
 	vip_frames = np.array([frame for frame in frames[:len(frames)//nr*nr:len(frames)//nr]])
 	
 	return vip_frames # returns a 3D array
 
-data = {}       
 def process_video(files):
 	start_time = time.time()
+	data = {}
 	for file_path in files:
 		cap = FileVideoStream(file_path).start()
 		frames = []
@@ -69,13 +62,13 @@ def process_video(files):
 	end_time = time.time()
 	duration = end_time - start_time
 	print(f'video processing took {duration} seconds')
-process_video(list_of_files)
+	return data
 
 # Extracting labels
-ref = ["anger", "happiness", "neutral", "sadness"]
-labels = {}
 def get_labels(file):
 	start_time = time.time()
+	ref = ["anger", "happiness", "neutral", "sadness"]
+	labels = {}
 	nr_l = 0
 	nr_bl = 0
 	with open(file, 'r') as f:
@@ -94,13 +87,12 @@ def get_labels(file):
 	end_time = time.time()
 	duration = end_time - start_time
 	print(f'label processing of {nr_l} line(s) ({nr_bl} bad labels detected) took {duration} seconds')
-
-get_labels(args["labels"])
+	return labels
 
 # Creating dataset as dictionary
-dataset_d = {}
 def create_dataset(labels, data):
 	start_time = time.time()
+	dataset_d = {}
 	nr_l = 0
 	nr_bl = 0
 	for x, y, i, j  in zip(labels.keys(), data.keys(), labels.values(), data.values()):
@@ -116,12 +108,27 @@ def create_dataset(labels, data):
 	end_time = time.time()
 	duration = end_time - start_time
 	print(f'combining of {nr_l} line(s) ({nr_bl} lines filtered) took {duration} seconds')
-create_dataset(labels, data)
+	return dataset_d
 
-print(len(dataset_d))
+if __name__ == '__main__':
+	# Creating a list with paths from directory
+	list_of_files = sorted([os.path.join(args["data"], i) for i in os.listdir(args["data"])])
 
-# Creating pandas dataframe from dictionary
-dataset_df = pd.DataFrame.from_dict(dataset_d, orient='index')
+	# Defining face detector & landmarks pedictor
+	detector = dlib.get_frontal_face_detector()
+	predictor = dlib.shape_predictor(args["predictor"])
 
-# Storing the dataframe
-dataset_df.to_pickle("PATH"+"df_hog_landmarks"+str(args["frames"])+".pkl")
+	# Extracting features
+	data = process_video(list_of_files)
+
+	# Extracting labels
+	labels = get_labels(args["labels"])
+
+	dataset_d = create_dataset(labels, data)
+	print(f'original length of dataset was: {len(data)} VS new length of dataset is: {len(dataset_d)}')
+
+	# Creating pandas dataframe from dictionary
+	dataset_df = pd.DataFrame.from_dict(dataset_d, orient='index')
+
+	# Storing the dataframe
+	dataset_df.to_pickle("df_hog_landmarks"+str(args["frames"])+".pkl")
