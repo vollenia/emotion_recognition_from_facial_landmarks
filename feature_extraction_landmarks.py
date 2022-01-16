@@ -52,7 +52,8 @@ def process_video(files):
 						frames.append(shape)
 					else:
 						print(f'negative coordinates found for {file_path}')
-			except AttributeError:
+			except AttributeError: # final frame is empty
+				# this issue can be resolved by changing FileVideoStream.py
 				pass
 		cap.stop()
 		if len(frames) >= args["frames"]: #checks if enough frames were accumulated
